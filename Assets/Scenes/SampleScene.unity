@@ -330,10 +330,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8a4aa79855b9ff4782a034c75d753d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vertexMarker: {fileID: 7262621511279715645, guid: 82dafeeb618ad344aa37c7bc0cb3c8ce, type: 3}
+  gridVertexMarker: {fileID: 2772520729516600608, guid: 927597af817b1a7429ff260bd7f36cba, type: 3}
+  cornerGridVertexMarker: {fileID: 2772520729516600608, guid: 19ee970e592121c41a9441c97dbc7240, type: 3}
+  marchingSpeed: 0.5
   gridSize: {x: 10, y: 10, z: 10}
-  scale: 3.51337
-  offset: {x: 0, y: 0, z: 0}
+  isolevel: 2
+  noiseScale: 3.51337
+  noiseOffset: {x: 0, y: 0, z: 0}
 --- !u!4 &1977733670
 Transform:
   m_ObjectHideFlags: 0
