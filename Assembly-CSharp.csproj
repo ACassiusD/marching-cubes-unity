@@ -56,12 +56,12 @@
     <Analyzer Include="C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Marching Cubes\SingleInteractiveGridCell\UIDebugVals.cs" />
     <Compile Include="Assets\Marching Cubes\MarchingCubeStructs.cs" />
     <Compile Include="Assets\Marching Cubes\MarchingCubesLookupTables.cs" />
+    <Compile Include="Assets\Marching Cubes\SingleInteractiveGridCell\InteractiveGridCell.cs" />
     <Compile Include="Assets\Marching Cubes\MarchingCubes.cs" />
-    <Compile Include="Assets\Marching Cubes\SingleInteractiveGridCell\SingleInteractiveGridCell.cs" />
     <Compile Include="Assets\Marching Cubes\SingleInteractiveGridCell\InteractiveVertex.cs" />
-    <Compile Include="Assets\Marching Cubes\SingleInteractiveGridCell\UIDebugVals.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

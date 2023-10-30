@@ -1,6 +1,8 @@
 using TMPro;
 using UnityEngine;
 
+// Represents the debug text on the screen
+// Subscribe to InteractiveVertex's OnToggleVertex event and updates the text
 public class UIDebugVals : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI debugText;
@@ -8,12 +10,12 @@ public class UIDebugVals : MonoBehaviour
     private void OnEnable()
     {
         debugText = this.gameObject.GetComponent<TextMeshProUGUI>();
-        SingleInteractiveGridCell.OnToggleVertex += UpdateDebugText;
+        InteractiveGridCell.onGridUpdated += UpdateDebugText;
     }
 
     private void OnDisable()
     {
-        SingleInteractiveGridCell.OnToggleVertex -= UpdateDebugText;
+        InteractiveGridCell.onGridUpdated -= UpdateDebugText;
     }
 
     private void UpdateDebugText(GridCell gridCell)

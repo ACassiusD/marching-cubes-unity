@@ -348,8 +348,8 @@
 "Assets/Marching Cubes/MarchingCubes.cs"
 "Assets/Marching Cubes/MarchingCubesLookupTables.cs"
 "Assets/Marching Cubes/MarchingCubeStructs.cs"
+"Assets/Marching Cubes/SingleInteractiveGridCell/InteractiveGridCell.cs"
 "Assets/Marching Cubes/SingleInteractiveGridCell/InteractiveVertex.cs"
-"Assets/Marching Cubes/SingleInteractiveGridCell/SingleInteractiveGridCell.cs"
 "Assets/Marching Cubes/SingleInteractiveGridCell/UIDebugVals.cs"
 -langversion:9.0
 

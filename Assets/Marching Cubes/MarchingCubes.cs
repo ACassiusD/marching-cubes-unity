@@ -10,7 +10,7 @@ public class MarchingCubes : MonoBehaviour
     public GameObject gridVertexMarker;
     public GameObject cornerGridVertexMarker;
     private List<GameObject> gridVertexMarkerInstances = new List<GameObject>();// Cached list of all grid markers exclusing current grid cells special highlighted vertices
-    private GameObject previousCube = null; // Cached reference so we can destroy it later
+    protected GameObject previousCube = null; // Cached reference so we can destroy it later
     public float marchingSpeed = 0.5f;
     public float gridCellOpacity = 0.2f;
     public Boolean showGradient = false;
@@ -136,7 +136,7 @@ public class MarchingCubes : MonoBehaviour
     }
 
     // Given a single gridcell, and isolevel, return a triangle mesh
-    int PolygoniseGridCell(GridCell gridcell, float isolevel, ref List<Triangle> triangles)
+    protected int PolygoniseGridCell(GridCell gridcell, float isolevel, ref List<Triangle> triangles)
     {
         int[] edgeTable = MarchingCubesLookupTables.edgeTable;
         int[,] triTable = MarchingCubesLookupTables.triTable;
@@ -290,7 +290,7 @@ public class MarchingCubes : MonoBehaviour
         //BuildMesh(allTriangles);
     }
 
-    private GameObject DrawCurrentGridCell(GridCell gridCell)
+    protected GameObject DrawCurrentGridCell(GridCell gridCell)
     {
         Material redMaterial = new Material(Shader.Find("Standard"));
         redMaterial.color = Color.red;

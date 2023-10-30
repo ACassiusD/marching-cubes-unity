@@ -2,18 +2,19 @@ using UnityEngine;
 
 public class InteractiveVertex : MonoBehaviour
 {
-    public SingleInteractiveGridCell gridCellScript; // Reference to the SingleInteractiveGridCell script
-    public GridCell gridCell; // Reference to the parent grid cell
     public int vertexIndex;   // Index of this vertex in the grid cell's verticies array
-
     private bool isOn = false; // Keep track of the toggle state
+
+    // Delegate and event cell grid subscribes to, raised when vertex is toggled
+    public delegate void VertexToggledHandler(int vertexIndex, bool isOn);
+    public event VertexToggledHandler OnToggledVertex;
 
     private void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(0)) // 0 represents the left mouse button
+        if (Input.GetMouseButtonDown(0))
         {
-            isOn = !isOn; // Toggle the state
-            gridCellScript.ToggleVertexValue(vertexIndex, isOn);
+            isOn = !isOn;
+            OnToggledVertex?.Invoke(vertexIndex, isOn);
         }
     }
 }
