@@ -26,14 +26,14 @@ public class MarchingCubes : MonoBehaviour
     public float noiseScale = 4.41337f;
     public Vector3 noiseOffset = new Vector3(0, 0, 0);
 
-    void Start()
+    protected virtual void Start()
     {
         // Initialize the markers for the first time
         Draw3DGridMarkers(gridSize);
         //StartProcessingGrid();
     }
 
-    void Update()
+    protected virtual void Update()
     {
         // Update the visualization each frame
         UpdateGridVisualization(gridSize);
@@ -356,7 +356,8 @@ public class MarchingCubes : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh;
     }
 
-    // Create Grid Cell for a given cell coordinate.
+    // Create Grid Cell for a given cell coordinate. 
+    // Populates the vertices and noiseValues
     public GridCell CreateGridCell(int x, int y, int z)
     {
         // Arrays to hold the vertices and noise values for the grid cell.

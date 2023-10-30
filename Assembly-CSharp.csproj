@@ -59,6 +59,9 @@
     <Compile Include="Assets\Marching Cubes\MarchingCubeStructs.cs" />
     <Compile Include="Assets\Marching Cubes\MarchingCubesLookupTables.cs" />
     <Compile Include="Assets\Marching Cubes\MarchingCubes.cs" />
+    <Compile Include="Assets\Marching Cubes\SingleInteractiveGridCell\SingleInteractiveGridCell.cs" />
+    <Compile Include="Assets\Marching Cubes\SingleInteractiveGridCell\InteractiveVertex.cs" />
+    <Compile Include="Assets\Marching Cubes\SingleInteractiveGridCell\UIDebugVals.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
