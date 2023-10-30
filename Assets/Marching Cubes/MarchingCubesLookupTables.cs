@@ -1,5 +1,10 @@
+using UnityEngine.UIElements;
+
 public class MarchingCubesLookupTables
 {
+    // Each cube has 8 vertices that can either be inside or outside the isosurface, based on some scalar value
+    // 2^8=256 possible configurations for a cube
+    // the hex 0x109 (binary: 0001 0000 1001), it means the isosurface intersects edges 0, 3, and 8 of the cube.
     public static int[] edgeTable = new int[256] {
         0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
         0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
