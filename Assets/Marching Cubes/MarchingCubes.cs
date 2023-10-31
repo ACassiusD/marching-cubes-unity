@@ -103,7 +103,12 @@ public class MarchingCubes : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.P))
         {
-            buildGridMeshInstantly();
+            if (instantMarch){
+                buildGridMeshInstantly();
+            }
+            else{
+                StartBuildGridMeshVisually();
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.G))
@@ -153,6 +158,8 @@ public class MarchingCubes : MonoBehaviour
     // Update the Grids vertex markers to reflect the current noise values
     void UpdateGridVisualization(Vector3Int size)
     {
+        //TODO: SET ALL GRID MARKERS ACTIVE TO FALSE DISPLAYGRID IS FALSE.
+
         int markerIndex = 0;
         for (int x = 0; x < size.x; x++)
         {
@@ -193,7 +200,7 @@ public class MarchingCubes : MonoBehaviour
                         }
                         textMeshPro.text = noiseValue.ToString("F2");  // Display 2 decimal places
                         textMeshPro.transform.localPosition = Vector3.up * 0.7f;  // Position above the sphere
-                        textMeshPro.fontSize = 5;
+                        textMeshPro.fontSize = 1;
                         textMeshPro.color = Color.black;
                         textMeshPro.alignment = TextAlignmentOptions.Center;
                     }
@@ -355,9 +362,6 @@ public class MarchingCubes : MonoBehaviour
                     GridCell gridCell = CreateGridCell(x, y, z);
                     previousCube = DrawCurrentGridCell(gridCell);
                     PolygoniseGridCell(gridCell, isolevel, ref allTriangles);
-                    if (instantMarch)
-                        yield return null;
-                    else
                         yield return new WaitForSeconds(marchingSpeed);
 
                     BuildMesh(allTriangles);
