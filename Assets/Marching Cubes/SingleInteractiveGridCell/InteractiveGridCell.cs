@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class InteractiveGridCell : MarchingCubes
@@ -15,7 +16,7 @@ public class InteractiveGridCell : MarchingCubes
         CreateInteractiveGridCell(CreateGridCell(0, 0, 0));
     }
 
-    // Creates the individual verticies that make up the grid cell and subscribes to the OnToggledVertex event
+    // Draws a sphere at each vertex on the grid cell, subscribing to its OnToggledVertex event
     void CreateInteractiveGridCell(GridCell gridCell)
     {
         GameObject cube = new GameObject("DebugGridCell");
@@ -33,6 +34,19 @@ public class InteractiveGridCell : MarchingCubes
             cornerMarkers[i] = markerInstance; // Store the sphere in the array
             InteractiveVertex interactionScript = markerInstance.AddComponent<InteractiveVertex>();
             interactionScript.vertexIndex = i;
+
+            // Display vertext # above the sphere
+            TextMeshPro textMeshPro = markerInstance.GetComponentInChildren<TextMeshPro>();
+            if (textMeshPro == null){
+                GameObject textObj = new GameObject("NoiseValueText");
+                textObj.transform.SetParent(markerInstance.transform);
+                textMeshPro = textObj.AddComponent<TextMeshPro>();
+            }
+            textMeshPro.text = i.ToString(); 
+            textMeshPro.transform.localPosition = Vector3.up * 0.7f;
+            textMeshPro.fontSize = 5;
+            textMeshPro.color = Color.black;
+            textMeshPro.alignment = TextAlignmentOptions.Center;
 
             // Subscribe to the OnToggledVertex event 
             interactionScript.OnToggledVertex += ToggleVertexValue;
@@ -65,9 +79,7 @@ public class InteractiveGridCell : MarchingCubes
     public void DrawMesh()
     {
         List<Triangle> allTriangles = new List<Triangle>();
-        GridCell gridCell = interactiveGridCell;
-        previousCube = DrawCurrentGridCell(gridCell);
-        PolygoniseGridCell(gridCell, isolevel, ref allTriangles);
+        PolygoniseGridCell(interactiveGridCell, isolevel, ref allTriangles);
         BuildMesh(allTriangles);
     }
 }

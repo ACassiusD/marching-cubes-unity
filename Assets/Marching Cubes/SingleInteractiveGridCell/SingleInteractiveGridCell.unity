@@ -277,11 +277,12 @@ MonoBehaviour:
   showGradient: 0
   hideAir: 0
   instantMarch: 0
-  disableLinearInterpolation: 0
+  disableLinearInterpolation: 1
   gridSize: {x: 10, y: 10, z: 10}
   isolevel: 0.41424125
   noiseScale: 4.41337
   noiseOffset: {x: 0, y: 0, z: 0}
+  drawCube: 0
 --- !u!23 &440391388
 MeshRenderer:
   m_ObjectHideFlags: 0

@@ -25,6 +25,7 @@ public class MarchingCubes : MonoBehaviour
     public float isolevel = 0.41424124f; 
     public float noiseScale = 4.41337f;
     public Vector3 noiseOffset = new Vector3(0, 0, 0);
+    public Boolean drawCube = false;
 
     protected virtual void Start()
     {
@@ -148,27 +149,31 @@ public class MarchingCubes : MonoBehaviour
         Vector3[] vertlist = new Vector3[12];
 
         // Find the cube index. based on the noise values at each vertex of the grid cell and the isolevel.
-        // If noise value is less than isolevel, the corresponding bit is set to 1.
-        // This means that the vertex is inside the surface. TODO: This might be backwards
+        // Points below the surface level / isolevel are considered outside the shape. Empty space / air.
+        // Points at or on the surface level / isolevel are considered  on the surface or inside the shape.
         cubeindex = 0;
-        if (gridcell.noiseValues[0] < isolevel) cubeindex |= 1;
-        if (gridcell.noiseValues[1] < isolevel) cubeindex |= 2;
-        if (gridcell.noiseValues[2] < isolevel) cubeindex |= 4;
-        if (gridcell.noiseValues[3] < isolevel) cubeindex |= 8;
-        if (gridcell.noiseValues[4] < isolevel) cubeindex |= 16;
-        if (gridcell.noiseValues[5] < isolevel) cubeindex |= 32;
-        if (gridcell.noiseValues[6] < isolevel) cubeindex |= 64;
-        if (gridcell.noiseValues[7] < isolevel) cubeindex |= 128;
+        if (gridcell.noiseValues[0] >= isolevel) cubeindex |= 1;
+        if (gridcell.noiseValues[1] >= isolevel) cubeindex |= 2;
+        if (gridcell.noiseValues[2] >= isolevel) cubeindex |= 4;
+        if (gridcell.noiseValues[3] >= isolevel) cubeindex |= 8;
+        if (gridcell.noiseValues[4] >= isolevel) cubeindex |= 16;
+        if (gridcell.noiseValues[5] >= isolevel) cubeindex |= 32;
+        if (gridcell.noiseValues[6] >= isolevel) cubeindex |= 64;
+        if (gridcell.noiseValues[7] >= isolevel) cubeindex |= 128;
 
 
         //Cube is entirely in/out of the surface
         if (edgeTable[cubeindex] == 0)
             return (0);
- 
+
         //Checks whether the isosurface intersects for all 12 edges of the cube,
         // if it does, it calculates the intersection point using linear interpolation and stores this point in vertlist[0]
         //for later use in constructing the triangles that approximate the isosurface within the cube.
-        if ((edgeTable[cubeindex] & 1) != 0)
+
+
+        //Checks if the first bit is set in edgeTable Value
+        // If true, populates an entry in the vertlist[] array with the interpolated vertex. 
+        if ( (edgeTable[cubeindex] & 1) != 0 )
             vertlist[0] =
                VertexInterp(isolevel, gridcell.verticies[0], gridcell.verticies[1], gridcell.noiseValues[0], gridcell.noiseValues[1]);
         if ((edgeTable[cubeindex] & 2) != 0)
@@ -180,12 +185,17 @@ public class MarchingCubes : MonoBehaviour
         if ((edgeTable[cubeindex] & 8) != 0)
             vertlist[3] =
                VertexInterp(isolevel, gridcell.verticies[3], gridcell.verticies[0], gridcell.noiseValues[3], gridcell.noiseValues[0]);
+        
+        //Point between 4 and 5 is is correct for cubeIndex = 32
         if ((edgeTable[cubeindex] & 16) != 0)
             vertlist[4] =
                VertexInterp(isolevel, gridcell.verticies[4], gridcell.verticies[5], gridcell.noiseValues[4], gridcell.noiseValues[5]);
+        
+        //Point between 5 and 5 is incorrect, should be  correct for cubeIndex = 32
         if ((edgeTable[cubeindex] & 32) != 0)
             vertlist[5] =
                VertexInterp(isolevel, gridcell.verticies[5], gridcell.verticies[6], gridcell.noiseValues[5], gridcell.noiseValues[6]);
+
         if ((edgeTable[cubeindex] & 64) != 0)
             vertlist[6] =
                VertexInterp(isolevel, gridcell.verticies[6], gridcell.verticies[7], gridcell.noiseValues[6], gridcell.noiseValues[7]);
@@ -198,9 +208,12 @@ public class MarchingCubes : MonoBehaviour
         if ((edgeTable[cubeindex] & 512) != 0)
             vertlist[9] =
                VertexInterp(isolevel, gridcell.verticies[1], gridcell.verticies[5], gridcell.noiseValues[1], gridcell.noiseValues[5]);
+       
+        //Point between 1 and 5 is is correct for cubeIndex = 32
         if ((edgeTable[cubeindex] & 1024) != 0)
             vertlist[10] =
                VertexInterp(isolevel, gridcell.verticies[2], gridcell.verticies[6], gridcell.noiseValues[2], gridcell.noiseValues[6]);
+
         if ((edgeTable[cubeindex] & 2048) != 0)
             vertlist[11] =
                VertexInterp(isolevel, gridcell.verticies[3], gridcell.verticies[7], gridcell.noiseValues[3], gridcell.noiseValues[7]);
@@ -313,11 +326,16 @@ public class MarchingCubes : MonoBehaviour
 
         // Create and position a cube to visualize the grid cell
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
         cube.transform.position = centerPosition;  // Position the cube at the center of the grid cell
 
         // Assume the grid cell is cubic and use the distance between two adjacent vertices to determine the size of the cube
         float size = Vector3.Distance(gridCell.verticies[0], gridCell.verticies[1]);
         cube.transform.localScale = new Vector3(size, size, size);  // Set the size of the cube to match the size of the grid cell
+        if (!drawCube)
+        {
+            cube.SetActive(false);
+        }
 
         // Apply the transparent material to the cube
         Renderer cubeRenderer = cube.GetComponent<Renderer>();
@@ -364,16 +382,23 @@ public class MarchingCubes : MonoBehaviour
         Vector3[] vertices = new Vector3[8];
         float[] noiseValues = new float[8];
 
+        // Offsets for vertices based on the marching cubes convention.
+        Vector3[] offsets = {
+            new Vector3(0, 0, 1), // 0
+            new Vector3(1, 0, 1), // 1
+            new Vector3(1, 0, 0), // 2
+            new Vector3(0, 0, 0), // 3
+            new Vector3(0, 1, 1), // 4
+            new Vector3(1, 1, 1), // 5
+            new Vector3(1, 1, 0), // 6
+            new Vector3(0, 1, 0) // 7
+        };
+
         // Loop through each vertex of the grid cell.
         for (int i = 0; i < 8; i++)
         {
-            // Determine the offset of the vertex from the cell coordinate.
-            int offsetX = (i & 1) == 0 ? 0 : 1;
-            int offsetY = (i & 2) == 0 ? 0 : 1;
-            int offsetZ = (i & 4) == 0 ? 0 : 1;
-
-            // Calculate the world position of the vertex.
-            Vector3 vertexPosition = new Vector3(x + offsetX, y + offsetY, z + offsetZ);
+            // Calculate the world position of the vertex using the correct offset.
+            Vector3 vertexPosition = new Vector3(x + offsets[i].x, y + offsets[i].y, z + offsets[i].z);
 
             // Store the vertex position in the vertices array.
             vertices[i] = vertexPosition;
@@ -390,4 +415,5 @@ public class MarchingCubes : MonoBehaviour
 
         return gridCell;
     }
+
 }
