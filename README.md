@@ -1,8 +1,10 @@
 # marching-cubes-unity
 An implementation of the Marching Cubes algorithm in Unity 3D.
 
-This algorithm samples 3D perlin noise values onto a 3D Grid representation. Using a isolevel we determine which verticies of the gridcell are considered terrain and which are considered air.
-The marching cubes algorithm then marches through the cubes to calculate the mesh for each gridcell.
+ maps uses 3D perlin noise to assign a noise level to a 3D Grid representation.
+
+Using a isolevel we compare to each vertex's noisevalue. we determine which verticies of the gridcell are considered terrain and which are considered air.
+This algorithm "marches" through each cube (gridcell) calculating the mesh.
 
 https://en.wikipedia.org/wiki/Marching_cubes
 https://paulbourke.net/geometry/polygonise/
