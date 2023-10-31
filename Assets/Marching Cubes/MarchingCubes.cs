@@ -16,37 +16,104 @@ public class MarchingCubes : MonoBehaviour
     public Boolean showGradient = false;
     public Boolean hideAir = false;
     public Boolean instantMarch = false;
+    public Boolean drawCube = false;
     public Boolean disableLinearInterpolation = false;
+    public Boolean showNoiseValues = false;
+    public Boolean displayGrid = false;
+    private Boolean wasInitialized = false;
 
-    //Grid parameters
-    public Vector3Int gridSize = new Vector3Int(10, 10, 10);
+    //Grid parameters - 2 so you can change it in the unity until you hit play, then its locked.
+    public Vector3Int setGridSize = new Vector3Int(10, 10, 10); 
+    private Vector3Int gridSize = new Vector3Int(10, 10, 10);
 
     //Perlin noise parameters
     public float isolevel = 0.41424124f; 
     public float noiseScale = 4.41337f;
     public Vector3 noiseOffset = new Vector3(0, 0, 0);
-    public Boolean drawCube = false;
+    private Vector3 previousNoiseOffset;
+
+    //Materials
+    Material redMaterial;
+    Material transparentMaterial;
 
     protected virtual void Start()
     {
-        // Initialize the markers for the first time
-        Draw3DGridMarkers(gridSize);
-        //StartProcessingGrid();
+        gridSize = setGridSize;
+        redMaterial = new Material(Shader.Find("Standard"));
+        redMaterial.color = Color.red;
+        transparentMaterial = new Material(Shader.Find("Transparent/Diffuse"));
+        transparentMaterial.color = new Color(1, 1, 1, gridCellOpacity);
+
+        if (displayGrid)
+        {
+            Initialize3DGridMarkers(gridSize);
+        }
     }
 
     protected virtual void Update()
     {
-        // Update the visualization each frame
-        UpdateGridVisualization(gridSize);
+        RemoveMeshOnNoiseChange();
+        HandleGridDisplay();
+        HandleInput();
+    }
 
-        if (Input.GetKeyDown(KeyCode.P)) // Checks if the "P" key is pressed
+    private void HandleGridDisplay()
+    {
+        if (displayGrid)
         {
-            StartProcessingGrid();
+            InitializeGridIfNecessary();
+            UpdateGridVisualization(gridSize);
+        }
+        else
+            DisableGridIfNecessary();
+
+    }
+
+    private void RemoveMeshOnNoiseChange()
+    {
+        if (noiseOffset != previousNoiseOffset)
+        {
+            GetComponent<MeshFilter>().mesh = null;
+            previousNoiseOffset = noiseOffset;
         }
     }
 
-    // Draw visual debugging sphere markers for the 3D grid
-    void Draw3DGridMarkers(Vector3Int size)
+
+    private void InitializeGridIfNecessary()
+    {
+        if (!wasInitialized)
+        {
+            Initialize3DGridMarkers(gridSize);
+            wasInitialized = true;
+        }
+    }
+
+    private void DisableGridIfNecessary()
+    {
+        if (wasInitialized && gridVertexMarkerInstances[1].activeInHierarchy == false)
+        {
+            foreach (GameObject markerInstance in gridVertexMarkerInstances)
+            {
+                markerInstance.SetActive(false);
+            }
+        }
+    }
+
+    private void HandleInput()
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            buildGridMeshInstantly();
+        }
+
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            GetComponent<MeshFilter>().mesh = null;
+        }
+    }
+
+    // Initialize the visual debugging sphere markers for the 3D grid and add them to a list 
+    void Initialize3DGridMarkers(Vector3Int size)
     {
         for (int x = 0; x < size.x; x++)
         {
@@ -60,6 +127,7 @@ public class MarchingCubes : MonoBehaviour
                 }
             }
         }
+        wasInitialized = true;
     }
 
     // For a given vertex on the 3D grid,
@@ -114,18 +182,21 @@ public class MarchingCubes : MonoBehaviour
                     }
 
                     // Display noise value above marker
-                    TextMeshPro textMeshPro = markerInstance.GetComponentInChildren<TextMeshPro>();
-                    if (textMeshPro == null)
+                    if (showNoiseValues)
                     {
-                        GameObject textObj = new GameObject("NoiseValueText");
-                        textObj.transform.SetParent(markerInstance.transform);
-                        textMeshPro = textObj.AddComponent<TextMeshPro>();
+                        TextMeshPro textMeshPro = markerInstance.GetComponentInChildren<TextMeshPro>();
+                        if (textMeshPro == null)
+                        {
+                            GameObject textObj = new GameObject("NoiseValueText");
+                            textObj.transform.SetParent(markerInstance.transform);
+                            textMeshPro = textObj.AddComponent<TextMeshPro>();
+                        }
+                        textMeshPro.text = noiseValue.ToString("F2");  // Display 2 decimal places
+                        textMeshPro.transform.localPosition = Vector3.up * 0.7f;  // Position above the sphere
+                        textMeshPro.fontSize = 5;
+                        textMeshPro.color = Color.black;
+                        textMeshPro.alignment = TextAlignmentOptions.Center;
                     }
-                    textMeshPro.text = noiseValue.ToString("F2");  // Display 2 decimal places
-                    textMeshPro.transform.localPosition = Vector3.up * 0.7f;  // Position above the sphere
-                    textMeshPro.fontSize = 5;
-                    textMeshPro.color = Color.black; 
-                    textMeshPro.alignment = TextAlignmentOptions.Center;
 
                     // Hide the marker if the noise value is below the isolevel and hideAir is true
                     markerInstance.SetActive(!hideAir || noiseValue <= isolevel);
@@ -239,11 +310,7 @@ public class MarchingCubes : MonoBehaviour
         return (ntriang);
     }
 
-
     // Linearly interpolate the position where an isosurface cuts
-    // an edge between two vertices, each with their own scalar value
-    // Linearly interpolate the position where an isosurface cuts
-    // an edge between two vertices, each with their own scalar value
     Vector3 VertexInterp(float isolevel, Vector3 p1, Vector3 p2, float valp1, float valp2)
     {
         if (disableLinearInterpolation)
@@ -267,16 +334,14 @@ public class MarchingCubes : MonoBehaviour
         }
     }
 
-
-    //Starts the process of marching through the grid
-    public void StartProcessingGrid()
+    public void StartBuildGridMeshVisually()
     {
-        StartCoroutine(ProcessGridCoroutine());
+        StartCoroutine(buildGridMeshVisuallyCoroutine());
     }
 
-    // Iterates or "Marches" through each GridCell in the 3D grid,
-    // Creating a list of triangles we will use to build our mesh.
-    public IEnumerator ProcessGridCoroutine()
+    // For each gridcell, calculate the triangles used to build that part of the mesh, using the marching cubes algorithm
+    // Once all the triangles are calculated, build the mesh.
+    IEnumerator buildGridMeshVisuallyCoroutine()
     {
         List<Triangle> allTriangles = new List<Triangle>();
 
@@ -299,18 +364,37 @@ public class MarchingCubes : MonoBehaviour
                 }
             }
         }
+    }
+    
+    //Process grid quickly without the visualization
+    void buildGridMeshInstantly()
+    {
+        List<Triangle> allTriangles = new List<Triangle>();
 
-        //BuildMesh(allTriangles);
+        for (int x = 0; x < gridSize.x - 1; x++)
+        {
+            for (int y = 0; y < gridSize.y - 1; y++)
+            {
+                for (int z = 0; z < gridSize.z - 1; z++)
+                {
+                    // Create a new grid cell
+                    GridCell gridCell = CreateGridCell(x, y, z);
+                    previousCube = DrawCurrentGridCell(gridCell);
+                    PolygoniseGridCell(gridCell, isolevel, ref allTriangles);
+                }
+            }
+        }
+        BuildMesh(allTriangles);
     }
 
+    //Draw the current grid cell when we build the mesh visually
     protected GameObject DrawCurrentGridCell(GridCell gridCell)
     {
-        Material redMaterial = new Material(Shader.Find("Standard"));
-        redMaterial.color = Color.red;
-
-        // Destroys/clears the last drawn gridcell cube and highlighted vertices
+        // Destroys/clears the last drawn grid cell cube and highlighted vertices
         if (previousCube != null)
+        {
             Destroy(previousCube);
+        }
 
         // Calculate the average position of the vertices to get the center position of the grid cell
         Vector3 centerPosition = Vector3.zero;
@@ -320,30 +404,24 @@ public class MarchingCubes : MonoBehaviour
         }
         centerPosition /= gridCell.verticies.Length;
 
-        // Create a new material with a transparent shader
-        Material transparentMaterial = new Material(Shader.Find("Transparent/Diffuse"));
-        transparentMaterial.color = new Color(1, 1, 1, gridCellOpacity);  // Set the color to white with 50% transparency
-
         // Create and position a cube to visualize the grid cell
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-        cube.transform.position = centerPosition;  // Position the cube at the center of the grid cell
+        cube.transform.position = centerPosition;
 
         // Assume the grid cell is cubic and use the distance between two adjacent vertices to determine the size of the cube
         float size = Vector3.Distance(gridCell.verticies[0], gridCell.verticies[1]);
-        cube.transform.localScale = new Vector3(size, size, size);  // Set the size of the cube to match the size of the grid cell
+        cube.transform.localScale = new Vector3(size, size, size);
+
         if (!drawCube)
         {
             cube.SetActive(false);
         }
 
         // Apply the transparent material to the cube
-        Renderer cubeRenderer = cube.GetComponent<Renderer>();
-        cubeRenderer.material = transparentMaterial;
+        cube.GetComponent<Renderer>().material = transparentMaterial;
 
-        return cube;  // Return the cube GameObject
+        return cube;
     }
-
 
     public void BuildMesh(List<Triangle> triangles)
     {
@@ -374,11 +452,9 @@ public class MarchingCubes : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh;
     }
 
-    // Create Grid Cell for a given cell coordinate. 
-    // Populates the vertices and noiseValues
+    // Create Grid Cell for a given cell coordinate. Populates the vertices and noiseValues
     public GridCell CreateGridCell(int x, int y, int z)
     {
-        // Arrays to hold the vertices and noise values for the grid cell.
         Vector3[] vertices = new Vector3[8];
         float[] noiseValues = new float[8];
 

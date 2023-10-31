@@ -387,14 +387,16 @@ MonoBehaviour:
   marchingSpeed: 0.02
   gridCellOpacity: 0.2
   showGradient: 0
-  hideAir: 1
+  hideAir: 0
   instantMarch: 1
-  disableLinearInterpolation: 0
-  gridSize: {x: 12, y: 12, z: 12}
-  isolevel: 0.41424125
-  noiseScale: 8.45345
-  noiseOffset: {x: -23.05, y: -33, z: 11.47}
   drawCube: 1
+  disableLinearInterpolation: 0
+  showNoiseValues: 0
+  displayGrid: 1
+  setGridSize: {x: 20, y: 20, z: 20}
+  isolevel: 0.41424125
+  noiseScale: 6.4534
+  noiseOffset: {x: -23.05, y: -33, z: 11.47}
 --- !u!4 &1756173470
 Transform:
   m_ObjectHideFlags: 0

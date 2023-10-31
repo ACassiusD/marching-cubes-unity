@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/Marching Cubes/SingleInteractiveGridCell/SingleInteractiveGridCell.unity
+- path: Assets/Marching Cubes/MarchingCubes.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0
