@@ -5,6 +5,10 @@ Using a 3D perlin noise function we assign a noise level each vertex of each gri
 Using a "isolevel" as a threadhold value, we compare it to the noise value for each vertex, determining if that point in space is considered terrain or air.
 The algorithm "marches" through each cube (gridcell) calculating the triangles to build a mesh.
 
+**Main Scripts **
+Assets/Marching Cubes/MarchingCubes.cs
+Assets/Marching Cubes/SingleInteractiveGridCell/InteractiveGridCell.cs
+
 https://en.wikipedia.org/wiki/Marching_cubes
 
 https://paulbourke.net/geometry/polygonise/
