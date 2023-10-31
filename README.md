@@ -6,5 +6,6 @@ Using a "isolevel" as a threadhold value, we compare it to the noise value for e
 The algorithm "marches" through each cube (gridcell) calculating the triangles to build a mesh.
 
 https://en.wikipedia.org/wiki/Marching_cubes
+
 https://paulbourke.net/geometry/polygonise/
 ![marchingcubes](https://github.com/ACassiusD/marching-cubes-unity/assets/18119577/6d0725e5-5035-4815-b335-956d196c8343)
