@@ -20,6 +20,7 @@ public class MarchingCubes : MonoBehaviour
     public Boolean disableLinearInterpolation = false;
     public Boolean showNoiseValues = false;
     public Boolean displayGrid = false;
+    public Boolean continuouslyDrawMesh = false;
     private Boolean wasInitialized = false;
 
     //Grid parameters - 2 so you can change it in the unity until you hit play, then its locked.
@@ -29,7 +30,7 @@ public class MarchingCubes : MonoBehaviour
     //Perlin noise parameters
     public float isolevel = 0.41424124f; 
     public float noiseScale = 4.41337f;
-    public float previousNoiseScale;
+    private float previousNoiseScale;
     public Vector3 noiseOffset = new Vector3(0, 0, 0);
     private Vector3 previousNoiseOffset;
 
@@ -53,7 +54,7 @@ public class MarchingCubes : MonoBehaviour
 
     protected virtual void Update()
     {
-        RemoveMeshOnNoiseChange();
+        UpdateMeshOnNoiseChange();
         HandleGridDisplay();
         HandleInput();
     }
@@ -69,11 +70,18 @@ public class MarchingCubes : MonoBehaviour
             DisableGridIfNecessary();
     }
 
-    private void RemoveMeshOnNoiseChange()
+    private void UpdateMeshOnNoiseChange()
     {
-        if (noiseOffset != previousNoiseOffset || previousNoiseScale != noiseScale)
+        if ( (noiseOffset != previousNoiseOffset || previousNoiseScale != noiseScale))
         {
-            GetComponent<MeshFilter>().mesh = null;
+            if (continuouslyDrawMesh)
+            {
+                buildGridMeshInstantly();
+            }
+            else
+            {
+                GetComponent<MeshFilter>().mesh = null;
+            }
             previousNoiseOffset = noiseOffset;
             previousNoiseScale = noiseScale;
         }
@@ -366,7 +374,6 @@ public class MarchingCubes : MonoBehaviour
                 for (int z = 0; z < gridSize.z - 1; z++)
                 {
                     GridCell gridCell = CreateGridCell(x, y, z);
-                    previousCube = DrawCurrentGridCell(gridCell);
                     PolygoniseGridCell(gridCell, isolevel, ref allTriangles);
                 }
             }

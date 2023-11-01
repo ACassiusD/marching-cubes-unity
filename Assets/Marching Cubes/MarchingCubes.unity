@@ -392,12 +392,12 @@ MonoBehaviour:
   drawCube: 1
   disableLinearInterpolation: 0
   showNoiseValues: 0
-  displayGrid: 1
-  setGridSize: {x: 20, y: 20, z: 20}
+  displayGrid: 0
+  continuouslyDrawMesh: 1
+  setGridSize: {x: 50, y: 30, z: 30}
   isolevel: 0.41424125
-  noiseScale: 5.434
-  previousNoiseScale: 6.34534
-  noiseOffset: {x: -23.05, y: -33, z: 11.47}
+  noiseScale: 8.434
+  noiseOffset: {x: -22.9, y: -33, z: 11.47}
 --- !u!4 &1756173470
 Transform:
   m_ObjectHideFlags: 0
