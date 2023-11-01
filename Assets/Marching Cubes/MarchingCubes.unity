@@ -396,6 +396,7 @@ MonoBehaviour:
   setGridSize: {x: 20, y: 20, z: 20}
   isolevel: 0.41424125
   noiseScale: 5.434
+  previousNoiseScale: 6.34534
   noiseOffset: {x: -23.05, y: -33, z: 11.47}
 --- !u!4 &1756173470
 Transform:

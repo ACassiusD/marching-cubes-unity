@@ -29,6 +29,7 @@ public class MarchingCubes : MonoBehaviour
     //Perlin noise parameters
     public float isolevel = 0.41424124f; 
     public float noiseScale = 4.41337f;
+    public float previousNoiseScale;
     public Vector3 noiseOffset = new Vector3(0, 0, 0);
     private Vector3 previousNoiseOffset;
 
@@ -66,18 +67,17 @@ public class MarchingCubes : MonoBehaviour
         }
         else
             DisableGridIfNecessary();
-
     }
 
     private void RemoveMeshOnNoiseChange()
     {
-        if (noiseOffset != previousNoiseOffset)
+        if (noiseOffset != previousNoiseOffset || previousNoiseScale != noiseScale)
         {
             GetComponent<MeshFilter>().mesh = null;
             previousNoiseOffset = noiseOffset;
+            previousNoiseScale = noiseScale;
         }
     }
-
 
     private void InitializeGridIfNecessary()
     {
@@ -90,7 +90,7 @@ public class MarchingCubes : MonoBehaviour
 
     private void DisableGridIfNecessary()
     {
-        if (wasInitialized && gridVertexMarkerInstances[1].activeInHierarchy == false)
+        if (wasInitialized && gridVertexMarkerInstances[1].activeInHierarchy == true)
         {
             foreach (GameObject markerInstance in gridVertexMarkerInstances)
             {
@@ -158,8 +158,6 @@ public class MarchingCubes : MonoBehaviour
     // Update the Grids vertex markers to reflect the current noise values
     void UpdateGridVisualization(Vector3Int size)
     {
-        //TODO: SET ALL GRID MARKERS ACTIVE TO FALSE DISPLAYGRID IS FALSE.
-
         int markerIndex = 0;
         for (int x = 0; x < size.x; x++)
         {
@@ -173,7 +171,8 @@ public class MarchingCubes : MonoBehaviour
                     Color noiseColor = Color.white;
                     if (showGradient){
                         noiseColor = Color.Lerp(Color.black, Color.white, noiseValue);
-                    }else{
+                    }
+                    else{
                         if (noiseValue < isolevel){
                             noiseColor = Color.black;
                         }
@@ -188,7 +187,7 @@ public class MarchingCubes : MonoBehaviour
                         markerRenderer.material.color = noiseColor;
                     }
 
-                    // Display noise value above marker
+                    // Display noise value above sphere marker 
                     if (showNoiseValues)
                     {
                         TextMeshPro textMeshPro = markerInstance.GetComponentInChildren<TextMeshPro>();
@@ -198,8 +197,8 @@ public class MarchingCubes : MonoBehaviour
                             textObj.transform.SetParent(markerInstance.transform);
                             textMeshPro = textObj.AddComponent<TextMeshPro>();
                         }
-                        textMeshPro.text = noiseValue.ToString("F2");  // Display 2 decimal places
-                        textMeshPro.transform.localPosition = Vector3.up * 0.7f;  // Position above the sphere
+                        textMeshPro.text = noiseValue.ToString("F2");
+                        textMeshPro.transform.localPosition = Vector3.up * 0.7f;
                         textMeshPro.fontSize = 1;
                         textMeshPro.color = Color.black;
                         textMeshPro.alignment = TextAlignmentOptions.Center;
@@ -207,7 +206,6 @@ public class MarchingCubes : MonoBehaviour
 
                     // Hide the marker if the noise value is below the isolevel and hideAir is true
                     markerInstance.SetActive(!hideAir || noiseValue <= isolevel);
-
                     markerIndex++;
                 }
             }
@@ -244,59 +242,48 @@ public class MarchingCubes : MonoBehaviour
         if (edgeTable[cubeindex] == 0)
             return (0);
 
-        //Checks whether the isosurface intersects for all 12 edges of the cube,
-        // if it does, it calculates the intersection point using linear interpolation and stores this point in vertlist[0]
-        //for later use in constructing the triangles that approximate the isosurface within the cube.
-
-
-        //Checks if the first bit is set in edgeTable Value
-        // If true, populates an entry in the vertlist[] array with the interpolated vertex. 
-        if ( (edgeTable[cubeindex] & 1) != 0 )
+        // Using edgeTable we look up a hex value using the cubeindex which we want to think of as its bianry representation
+        // By looking at the bits set in the bianry number, we can determine which of the 12 edges of the cube are intersected by the isosurface
+        // Example: cubeindex = 32, edgeTable[cubeindex] = 0x230(hex) = 0010 0011 0000(binary)
+        // That means for cube index 32 we will be true for the 5th, 6th and 10th if statements
+        if ( (edgeTable[cubeindex] & 1) != 0 ) //1st bit/edge
             vertlist[0] =
                VertexInterp(isolevel, gridcell.verticies[0], gridcell.verticies[1], gridcell.noiseValues[0], gridcell.noiseValues[1]);
-        if ((edgeTable[cubeindex] & 2) != 0)
+        if ((edgeTable[cubeindex] & 2) != 0) //2nd bit
             vertlist[1] =
                VertexInterp(isolevel, gridcell.verticies[1], gridcell.verticies[2], gridcell.noiseValues[1], gridcell.noiseValues[2]);
-        if ((edgeTable[cubeindex] & 4) != 0)
+        if ((edgeTable[cubeindex] & 4) != 0) //3rd bit
             vertlist[2] =
                VertexInterp(isolevel, gridcell.verticies[2], gridcell.verticies[3], gridcell.noiseValues[2], gridcell.noiseValues[3]);
-        if ((edgeTable[cubeindex] & 8) != 0)
+        if ((edgeTable[cubeindex] & 8) != 0) //4th bit
             vertlist[3] =
                VertexInterp(isolevel, gridcell.verticies[3], gridcell.verticies[0], gridcell.noiseValues[3], gridcell.noiseValues[0]);
-        
-        //Point between 4 and 5 is is correct for cubeIndex = 32
-        if ((edgeTable[cubeindex] & 16) != 0)
+        if ((edgeTable[cubeindex] & 16) != 0) //5th bit
             vertlist[4] =
                VertexInterp(isolevel, gridcell.verticies[4], gridcell.verticies[5], gridcell.noiseValues[4], gridcell.noiseValues[5]);
-        
-        //Point between 5 and 5 is incorrect, should be  correct for cubeIndex = 32
-        if ((edgeTable[cubeindex] & 32) != 0)
+        if ((edgeTable[cubeindex] & 32) != 0) //6th bit
             vertlist[5] =
                VertexInterp(isolevel, gridcell.verticies[5], gridcell.verticies[6], gridcell.noiseValues[5], gridcell.noiseValues[6]);
-
-        if ((edgeTable[cubeindex] & 64) != 0)
+        if ((edgeTable[cubeindex] & 64) != 0) //7th bit
             vertlist[6] =
                VertexInterp(isolevel, gridcell.verticies[6], gridcell.verticies[7], gridcell.noiseValues[6], gridcell.noiseValues[7]);
-        if ((edgeTable[cubeindex] & 128) != 0)
+        if ((edgeTable[cubeindex] & 128) != 0) //8th bit
             vertlist[7] =
                VertexInterp(isolevel, gridcell.verticies[7], gridcell.verticies[4], gridcell.noiseValues[7], gridcell.noiseValues[4]);
-        if ((edgeTable[cubeindex] & 256) != 0)
+        if ((edgeTable[cubeindex] & 256) != 0) //9th bit
             vertlist[8] =
                VertexInterp(isolevel, gridcell.verticies[0], gridcell.verticies[4], gridcell.noiseValues[0], gridcell.noiseValues[4]);
-        if ((edgeTable[cubeindex] & 512) != 0)
+        if ((edgeTable[cubeindex] & 512) != 0) //10th bit
             vertlist[9] =
                VertexInterp(isolevel, gridcell.verticies[1], gridcell.verticies[5], gridcell.noiseValues[1], gridcell.noiseValues[5]);
-       
-        //Point between 1 and 5 is is correct for cubeIndex = 32
-        if ((edgeTable[cubeindex] & 1024) != 0)
+        if ((edgeTable[cubeindex] & 1024) != 0) //11th bit
             vertlist[10] =
                VertexInterp(isolevel, gridcell.verticies[2], gridcell.verticies[6], gridcell.noiseValues[2], gridcell.noiseValues[6]);
-
-        if ((edgeTable[cubeindex] & 2048) != 0)
+        if ((edgeTable[cubeindex] & 2048) != 0) //12th bit
             vertlist[11] =
                VertexInterp(isolevel, gridcell.verticies[3], gridcell.verticies[7], gridcell.noiseValues[3], gridcell.noiseValues[7]);
 
-        // Create the triangle
+        // Create the triangles.
         ntriang = 0;
         for (i = 0; triTable[cubeindex, i] != -1; i += 3)
         {
@@ -307,10 +294,7 @@ public class MarchingCubes : MonoBehaviour
                 vertlist[triTable[cubeindex, i + 2]]
             );
 
-            // Add the new Triangle instance to the triangles list
             triangles.Add(triangle);
-
-            // Increment the triangle count to move on to the next triangle for the next iteration.
             ntriang++;
         }
 
@@ -381,7 +365,6 @@ public class MarchingCubes : MonoBehaviour
             {
                 for (int z = 0; z < gridSize.z - 1; z++)
                 {
-                    // Create a new grid cell
                     GridCell gridCell = CreateGridCell(x, y, z);
                     previousCube = DrawCurrentGridCell(gridCell);
                     PolygoniseGridCell(gridCell, isolevel, ref allTriangles);
@@ -394,7 +377,6 @@ public class MarchingCubes : MonoBehaviour
     //Draw the current grid cell when we build the mesh visually
     protected GameObject DrawCurrentGridCell(GridCell gridCell)
     {
-        // Destroys/clears the last drawn grid cell cube and highlighted vertices
         if (previousCube != null)
         {
             Destroy(previousCube);
@@ -449,10 +431,8 @@ public class MarchingCubes : MonoBehaviour
 
         mesh.vertices = vertices.ToArray();
         mesh.triangles = indices.ToArray();
-
         mesh.RecalculateNormals();
 
-        // Assign the mesh to a MeshFilter or MeshCollider
         GetComponent<MeshFilter>().mesh = mesh;
     }
 
@@ -471,29 +451,19 @@ public class MarchingCubes : MonoBehaviour
             new Vector3(0, 1, 1), // 4
             new Vector3(1, 1, 1), // 5
             new Vector3(1, 1, 0), // 6
-            new Vector3(0, 1, 0) // 7
+            new Vector3(0, 1, 0)  // 7
         };
 
-        // Loop through each vertex of the grid cell.
+        // Loop through each vertex of the grid cell and calculate the vertex position and noise value.
         for (int i = 0; i < 8; i++)
         {
-            // Calculate the world position of the vertex using the correct offset.
             Vector3 vertexPosition = new Vector3(x + offsets[i].x, y + offsets[i].y, z + offsets[i].z);
-
-            // Store the vertex position in the vertices array.
-            vertices[i] = vertexPosition;
-
-            // Get the Perlin noise value at the vertex position.
             float noiseValue = GetPerlinValueForVertex(vertexPosition.x, vertexPosition.y, vertexPosition.z);
-
-            // Store the noise value in the noiseValues array.
+            vertices[i] = vertexPosition;
             noiseValues[i] = noiseValue;
         }
 
-        // Create a new GridCell instance using the vertices and noiseValues arrays.
         GridCell gridCell = new GridCell(vertices, noiseValues);
-
         return gridCell;
     }
-
 }
